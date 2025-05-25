@@ -1,17 +1,5 @@
 import re
 import csv
-
-# Raw text from view_text_website for OnePlus page (from Turn 28)
-raw_text = """
-   [1]Mobil & PC Fiks » Feed [2]Mobil & PC Fiks » Comments Feed
-   [3]alternate [4]alternate [5]alternate
-
-   [6]Skip to content
-   [7]462 60 432
-
-   Mobil & PC Fiks
-   Rask og trygg mobil pc reparasjon
-   [8]Mobil & PC Fiks
      * [9]Priser
           + [10]Apple
           + [11]Samsung
@@ -25,11 +13,7 @@ raw_text = """
           + [19]HTC
           + [20]Doro
           + [21]Sony
-     * [22]Butikker
-     * [23]Bestille Time
-     * [24]For Bedrift
-     * [25]Gratis Frakt
-     * [26]Kontakt Oss
+
 
      * [27]Priser
           + [28]Apple
@@ -44,12 +28,6 @@ raw_text = """
           + [37]HTC
           + [38]Doro
           + [39]Sony
-     * [40]Butikker
-     * [41]Bestille Time
-     * [42]For Bedrift
-     * [43]Gratis Frakt
-     * [44]Kontakt Oss
-
 OnePlus
 
 Skjermbytte
@@ -74,12 +52,6 @@ Skjermbytte
    OnePlus X Svart          1299kr
    OnePlus Two              1199kr
    OnePlus One              999kr
-
-Kontakt Oss
-# ... (rest of text)
-"""
-
-def clean_text(text):
     """Removes navigation, reference numbers, and normalizes spaces."""
     lines = text.split('\n')
     cleaned_lines = []
