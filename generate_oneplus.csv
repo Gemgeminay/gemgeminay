@@ -1,18 +1,5 @@
 import re
 import csv
-     * [9]Priser
-          + [10]Apple
-          + [11]Samsung
-          + [12]Huawei
-          + [13]Xiaomi
-          + [14]OnePlus
-          + [15]Nokia
-          + [16]Motorola
-          + [17]Google
-          + [18]LG
-          + [19]HTC
-          + [20]Doro
-          + [21]Sony
      * [27]Priser
           + [28]Apple
           + [29]Samsung
