@@ -1,0 +1,165 @@
+import re
+import csv
+
+# Raw text from view_text_website for OnePlus page (from Turn 28)
+raw_text = """
+   [1]Mobil & PC Fiks » Feed [2]Mobil & PC Fiks » Comments Feed
+   [3]alternate [4]alternate [5]alternate
+
+   [6]Skip to content
+   [7]462 60 432
+
+   Mobil & PC Fiks
+   Rask og trygg mobil pc reparasjon
+   [8]Mobil & PC Fiks
+     * [9]Priser
+          + [10]Apple
+          + [11]Samsung
+          + [12]Huawei
+          + [13]Xiaomi
+          + [14]OnePlus
+          + [15]Nokia
+          + [16]Motorola
+          + [17]Google
+          + [18]LG
+          + [19]HTC
+          + [20]Doro
+          + [21]Sony
+     * [22]Butikker
+     * [23]Bestille Time
+     * [24]For Bedrift
+     * [25]Gratis Frakt
+     * [26]Kontakt Oss
+
+     * [27]Priser
+          + [28]Apple
+          + [29]Samsung
+          + [30]Huawei
+          + [31]Xiaomi
+          + [32]OnePlus
+          + [33]Nokia
+          + [34]Motorola
+          + [35]Google
+          + [36]LG
+          + [37]HTC
+          + [38]Doro
+          + [39]Sony
+     * [40]Butikker
+     * [41]Bestille Time
+     * [42]For Bedrift
+     * [43]Gratis Frakt
+     * [44]Kontakt Oss
+
+OnePlus
+
+Skjermbytte
+
+            Modell           Pris
+   OnePlus 8T               3799kr
+   OnePlus 8 Pro            4799kr
+   OnePlus Nord             2399kr
+   OnePlus 7T Pro           4499kr
+   OnePlus 7T               4399kr
+   OnePlus 7 Pro            4499kr
+   OnePlus 7                4399kr
+   OnePlus 6T               2099kr
+   OnePlus 6                2099kr
+   OnePlus 5T               1599kr
+   OnePlus 5                1599kr
+   OnePlus 3T               1499kr
+   OnePlus 3T Hvit          1499kr
+   OnePlus 3 Hvit med Ramme 1599kr
+   OnePlus 3 Svart          1399kr
+   OnePlus 3 Hvit           1399kr
+   OnePlus X Svart          1299kr
+   OnePlus Two              1199kr
+   OnePlus One              999kr
+
+Kontakt Oss
+# ... (rest of text)
+"""
+
+def clean_text(text):
+    """Removes navigation, reference numbers, and normalizes spaces."""
+    lines = text.split('\n')
+    cleaned_lines = []
+    in_main_content = False
+    for line in lines:
+        if line.strip() == "OnePlus": # Start of relevant content
+            in_main_content = True
+            continue 
+        if "Kontakt Oss" in line or "Følg oss" in line or "RASK TILGANG" in line or "Mobil & PC Fiks AS ©" in line or "References" in line:
+            in_main_content = False
+            continue
+        if not in_main_content:
+            continue
+
+        cleaned_line = re.sub(r'\[\d+\]', '', line) 
+        cleaned_line = re.sub(r'\s{2,}', ' ', cleaned_line).strip() 
+        if cleaned_line:
+            cleaned_lines.append(cleaned_line)
+    return cleaned_lines
+
+def parse_oneplus_data(lines):
+    """Parses cleaned lines to extract OnePlus repair data."""
+    parsed_data = {
+        "Skjermbytte": []
+    }
+    current_section_key = None
+    
+    idx = 0
+    while idx < len(lines):
+        line = lines[idx].strip()
+        idx += 1
+
+        if line == "Skjermbytte":
+            current_section_key = "Skjermbytte"
+            if idx < len(lines) and lines[idx].strip().startswith("Modell Pris"):
+                idx += 1 
+            continue
+        
+        if not current_section_key: 
+            continue
+            
+        match = re.match(r'^(.*?)\s+(\d+kr)$', line)
+        if match:
+            model_name, price = match.groups()
+            model_name = model_name.strip() 
+            if model_name: 
+                parsed_data[current_section_key].append({"Modell": model_name, "Pris": price})
+            
+    return parsed_data
+
+# --- Main script execution ---
+cleaned_content = clean_text(raw_text)
+parsed_oneplus_data = parse_oneplus_data(cleaned_content)
+
+# --- Transform to CSV format ---
+csv_output_rows = []
+csv_headers = ["Brand", "Model", "Service Category", "Specific Service", "Price"]
+csv_output_rows.append(csv_headers)
+brand_name = "OnePlus"
+
+category_name_on_page = "Skjermbytte" 
+service_category_csv = f"OnePlus {category_name_on_page}"
+specific_service_csv = category_name_on_page
+
+if category_name_on_page in parsed_oneplus_data:
+    items = parsed_oneplus_data[category_name_on_page]
+    if items:
+        for item in items:
+            if item.get("Modell") and item.get("Pris"): 
+                csv_output_rows.append([
+                    brand_name,
+                    item["Modell"],
+                    service_category_csv,
+                    specific_service_csv,
+                    item["Pris"]
+                ])
+            
+csv_filename = "oneplus_prices.csv"
+with open(csv_filename, "w", newline="", encoding="utf-8") as csvfile:
+    writer = csv.writer(csvfile)
+    writer.writerows(csv_output_rows)
+
+print(f"CSV file '{csv_filename}' generated successfully.")
